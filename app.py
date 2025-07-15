@@ -103,4 +103,3 @@ def process_with_progress(filepath, state, task_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
-app.py
