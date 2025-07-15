@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rego Checker</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .spinner {
+      display: inline-block;
+      animation: spin 1s linear infinite;
+      margin-left: 8px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚗 Rego Checker</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+      <label class="form-label">Select State:</label>
+      <select name="state" required class="form-select">
+        <option value="">-- Choose a state --</option>
+        <option value="nt">Northern Territory (NT)</option>
+        <option value="qld">Queensland (QLD)</option>
+        <option value="nsw">New South Wales (NSW)</option>
+        <option value="wa">Western Australia (WA)</option>
+        <option value="act">Australian Capital Territory (ACT)</option>
+      </select>
+
+      <label class="form-label">Choose CSV file:</label>
+      <input type="file" name="file" required class="form-input" />
+
+      <button type="submit" class="btn-submit">Upload & Check</button>
+    </form>
+
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar">0%</div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const progressBar = document.getElementById('progressBar');
+    const submitBtn = form.querySelector('.btn-submit');
+    const originalText = submitBtn.textContent;
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const formData = new FormData(form);
+      document.activeElement.blur();
+
+      // Show loading state
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Processing... <span class="spinner">⏳</span>';
+
+      fetch('/start', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        const taskId = data.task_id;
+
+        const interval = setInterval(() => {
+          fetch(`/progress/${taskId}`)
+            .then(res => res.json())
+            .then(progressData => {
+              const percent = progressData.progress;
+              progressBar.style.width = percent + "%";
+              progressBar.textContent = percent + "%";
+
+              if (percent >= 100) {
+                clearInterval(interval);
+                progressBar.textContent = "✅ Done";
+                progressBar.style.width = "100%";
+
+                // Auto-trigger file download
+                fetch(`/download/${taskId}`)
+                  .then(res => res.blob())
+                  .then(blob => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "result.csv";
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                  });
+              }
+            });
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+</html>
