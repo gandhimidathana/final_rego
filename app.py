@@ -102,4 +102,4 @@ def process_with_progress(filepath, state, task_id):
         progress_map[task_id] = 100
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=10000)
