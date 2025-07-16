@@ -1,11 +1,10 @@
-# Dockerfile
+# Dockerfile for Flask + Selenium (no Python code changes)
 
 FROM python:3.10-slim
 
-# Set workdir
-WORKDIR /app
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies including Chrome and Chromedriver
+# Install required system packages
 RUN apt-get update && apt-get install -y \
     wget unzip curl gnupg ca-certificates fonts-liberation \
     libglib2.0-0 libnss3 libgconf-2-4 libxi6 libxrender1 \
@@ -18,14 +17,21 @@ RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearm
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
     apt-get update && apt-get install -y google-chrome-stable
 
+# Set Chrome path (so your existing Python code works without changes)
+ENV PATH="/usr/bin/chromedriver:${PATH}"
+ENV CHROME_BIN="/usr/bin/google-chrome"
+
+# Set working directory
+WORKDIR /app
+
 # Copy project files
 COPY . .
 
-# Install Python deps
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose Flask port
 EXPOSE 10000
 
-# Start the Flask app using gunicorn
+# Start your app with Gunicorn
 CMD ["gunicorn", "-b", "0.0.0.0:10000", "app:app"]
