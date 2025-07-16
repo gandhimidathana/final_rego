@@ -1,23 +1,31 @@
+# Dockerfile
+
 FROM python:3.10-slim
 
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    wget curl unzip chromium chromium-driver \
-    fonts-liberation libnss3 libxss1 libappindicator1 libatk-bridge2.0-0 libgtk-3-0 \
-    && apt-get clean
-
-# Set display to fake one (optional for headless)
-ENV DISPLAY=:99
-
-# Set working dir and copy project
+# Set workdir
 WORKDIR /app
-COPY . /app
 
-# Install Python requirements
-RUN pip install --upgrade pip && pip install -r requirements.txt
+# Install system dependencies including Chrome and Chromedriver
+RUN apt-get update && apt-get install -y \
+    wget unzip curl gnupg ca-certificates fonts-liberation \
+    libglib2.0-0 libnss3 libgconf-2-4 libxi6 libxrender1 \
+    libxcomposite1 libxcursor1 libxdamage1 libxtst6 libxrandr2 \
+    xdg-utils libappindicator1 libasound2 chromium-driver \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Expose the port your app runs on
+# Install Google Chrome
+RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get update && apt-get install -y google-chrome-stable
+
+# Copy project files
+COPY . .
+
+# Install Python deps
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expose Flask port
 EXPOSE 10000
 
-# Start using gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "app:app"]
+# Start the Flask app using gunicorn
+CMD ["gunicorn", "-b", "0.0.0.0:10000", "app:app"]
