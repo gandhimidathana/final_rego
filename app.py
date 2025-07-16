@@ -20,13 +20,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 progress_map = {}
 result_buffer_map = {}
 
-def version_check():
-    try:
-        chrome_version = subprocess.check_output(["google-chrome", "--version"]).decode().strip()
-        driver_version = subprocess.check_output(["chromedriver", "--version"]).decode().strip()
-        return f"<pre>Chrome: {chrome_version}\nChromedriver: {driver_version}</pre>"
-    except Exception as e:
-        return f"Error: {str(e)}"
 
 @app.route('/')
 def index():
