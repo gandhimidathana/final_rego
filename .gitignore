@@ -1,0 +1,20 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+
+# Output and temp files
+uploads/
+output/
+*.csv
+*.log
+
+# Virtual environments
+venv/
+.env
+
+# ChromeDriver binary (should be installed in Docker instead)
+chromedriver
+
+# OS generated files
+.DS_Store
+Thumbs.db
