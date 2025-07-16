@@ -100,7 +100,6 @@ def process_with_progress(filepath, state, task_id):
     except Exception as e:
         print(f"Error: {e}")
         progress_map[task_id] = 100
-        #app
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=10000)
