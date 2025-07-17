@@ -1,16 +1,21 @@
-# Use official slim Python base
-FROM python:3.10-slim
+# Use Ubuntu 20.04 as base
+FROM ubuntu:20.04
 
 # Avoid interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install dependencies and system Chrome & Chromedriver
+# Install Python, pip, and other system dependencies
 RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
     wget unzip curl gnupg ca-certificates fonts-liberation \
     libglib2.0-0 libnss3 libgconf-2-4 libxi6 libxrender1 \
     libxcomposite1 libxcursor1 libxdamage1 libxtst6 libxrandr2 \
     xdg-utils libappindicator1 libasound2 chromium-driver \
     --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
+# Optional: create 'python' alias for python3
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # Install Chrome Stable from Google
 RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg && \
@@ -28,8 +33,8 @@ WORKDIR /app
 # Copy all source files
 COPY . .
 
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python packages (make sure requirements.txt exists)
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Expose Flask port (match PORT env var in Railway)
 EXPOSE 10000
